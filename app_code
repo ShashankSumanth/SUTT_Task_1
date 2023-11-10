@@ -1,0 +1,500 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, prefer_const_constructors_in_immutables, use_key_in_widget_constructors
+
+import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+
+
+void main()=> runApp(MaterialApp(
+  home: HomeScreen(),
+  debugShowCheckedModeBanner: false,
+));
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(Icons.account_circle_outlined, color: Colors.blue, size: 35,),
+            Text('Home',
+            style: TextStyle(color: Colors.black),),
+            Icon(Icons.star_outline_rounded, color: Colors.blue, size: 35)
+          ],
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0.0,
+      ),
+      body: Column(children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children:[Text('Welcome!',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),)],
+          ),
+        SizedBox(height: 10),
+        Expanded(
+              child: ListView(
+                children: [
+                  CarouselSlider(
+                    options: CarouselOptions(
+                      height: 200.0,
+                      autoPlay: true,
+                      autoPlayInterval: Duration(seconds: 5),
+                      enlargeCenterPage: true,
+                    ),
+                    items: [
+                      'assets/Carousel_Image_1.jpg',
+                      'assets/Carousel_Image_2.jpg',
+                      'assets/Carousel_Image_3.jpg',
+                    ].map((item) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width,
+                            margin: EdgeInsets.symmetric(horizontal: 0.0),
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                            ),
+                            child: Image.asset(
+                              item,
+                              fit: BoxFit.cover,
+                              
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ]
+              ),
+              ),
+        Row(
+          children: [Stack(
+            children: <Widget>[
+              Container(
+                width: 390.74,
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Color(0xFF02021E),
+                  borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(20.0),
+                  bottomRight: Radius.circular(20.0),
+                  ),
+                  )
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(5, 20, 0, 0),
+                child: Column(
+                  children: <Widget>[
+                    Text('Getting',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[300], fontSize: 20),),
+                    SizedBox(height: 5),
+                    Text('Started',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[300], fontSize: 20),),
+                    SizedBox(height: 20),
+                    Text('Countries',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+                    ],
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 20,
+                child: Image(image: AssetImage('assets/image 4.jpg'),
+                            height: 150,
+                            
+                  ),
+                ),
+              ],
+            ),
+          ]
+        ),
+        SizedBox(height: 30),
+        TextField(
+          decoration: InputDecoration(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+          hintText: 'Search Country',
+          suffixIcon: Icon(Icons.search, color: Colors.black,),
+          ),
+        ),
+        Padding(padding: EdgeInsets.fromLTRB(0, 10, 0, 0)),
+        ListTileButton(title: 'Afghanistan'),
+        ListTileButton(title: 'Albania'),
+        ListTileButton(title: 'Algeria'),
+        ListTileButton(title: 'Andora'),
+        ListTileButton(title: 'Angola'),
+        ]
+      ),
+    );
+  }
+}
+
+class Bookmark extends StatefulWidget {
+  const Bookmark({super.key});
+
+  @override
+  State<Bookmark> createState() => _BookmarkState();
+}
+
+class _BookmarkState extends State<Bookmark> {
+  bool _isBookmarked = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(_isBookmarked?
+        Icons.star:
+        Icons.star_border,
+        color: Colors.black), 
+        onPressed: _toggleBookmark,
+    );
+  }
+  void _toggleBookmark() {
+  setState(() {
+    if (_isBookmarked) {
+      _isBookmarked = false;
+    } else {
+      _isBookmarked = true;
+    }
+  });
+}
+}
+
+class Screen2 extends StatefulWidget {
+  const Screen2({super.key});
+
+  @override
+  State<Screen2> createState() => _Screen2State();
+}
+
+class _Screen2State extends State<Screen2> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Country Details'),
+        centerTitle: true,
+        backgroundColor: Color(0xFF1E2831),
+        elevation: 0,
+        actions: <Widget>[
+          IconButton(onPressed: (){
+            Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+          }, 
+          icon: Icon(Icons.arrow_back))
+        ],
+      ),
+      body: Column(
+        children: <Widget>[
+          Container(
+                height: 10,
+                color: Color(0xFF1E2831),
+              ),
+          Stack(
+            children: <Widget>[
+              Container(
+                height: 140,
+                decoration: BoxDecoration(
+                  color: Color(0xFF1E2831),
+                  borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50.0),
+                  bottomRight: Radius.circular(50.0),
+                  ),
+                  )
+              ),
+              Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image(image: AssetImage('assets/indian-flag.png'),
+                                    height: 200,
+                                    ),
+                    )
+                    ),   
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Column(
+                  children: [
+                    Text('Code', style: TextStyle(fontSize: 25, color: Colors.grey, fontWeight: FontWeight.bold),),
+                    Text('IN', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold))
+                    ],
+                ),
+                Column(
+                  children: [
+                    Text('Capital', style: TextStyle(fontSize: 25, color: Colors.grey, fontWeight: FontWeight.bold),),
+                    Text('New Delhi', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold))
+                    ],
+                ),
+                Column(
+                  children: [
+                    Text('ISD', style: TextStyle(fontSize: 25, color: Colors.grey, fontWeight: FontWeight.bold),),
+                    Text('+91', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold))
+                    ],
+                ),
+              ],
+            ),
+          ),
+          Padding(
+                  padding: const EdgeInsets.fromLTRB(80, 0, 80, 0),
+                  child: TextButton(
+                  onPressed: () async {
+                            var url = Uri.parse("https://en.wikipedia.org/wiki/India");
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url);
+                              } else {
+                              throw 'Could not launch $url';
+                               }
+                            },
+                            style: TextButton.styleFrom(backgroundColor: Color(0xFF1E2831)), 
+                            child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                                Text('Wikipedia', style: TextStyle(color: Colors.white, fontSize: 18)),
+                                Icon(Icons.arrow_outward_outlined, color: Colors.white,)
+                                      ],
+                                    ),
+                                  ),
+                                ),
+          Column(
+            children: [
+              Text('CITIES', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+              SizedBox(height: 5,),
+              TextField(
+                decoration: InputDecoration(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                hintText: 'Search City',
+                suffixIcon: Icon(Icons.search,color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+          ListTileToScreen3(title: 'Mumbai'),
+          ListTileToScreen3(title: 'Mumbai'),
+          ListTileToScreen3(title: 'Mumbai'),
+
+        ],
+      )
+    );
+  }
+}
+
+class ListTileButton extends StatelessWidget {
+  final String title;
+
+  ListTileButton({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(title),
+            Bookmark(),
+          ]),
+      onTap: () {
+        Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Screen2()),
+                  );
+      },
+    );
+  }
+}
+
+class ListTileToScreen3 extends StatelessWidget {
+  final String title;
+
+  ListTileToScreen3({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(title),
+            Bookmark(),
+          ]),
+      onTap: () {
+        Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Screen3()),
+                  );
+      },
+    );
+  }
+}
+
+class Screen3 extends StatefulWidget {
+  const Screen3({super.key});
+
+  @override
+  State<Screen3> createState() => _Screen3State();
+}
+
+class _Screen3State extends State<Screen3> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('City Details'),
+        centerTitle: true,
+        backgroundColor: Color(0xFF1E2831),
+        elevation: 0,
+        actions: <Widget>[
+          IconButton(onPressed: (){
+            Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Screen2()),
+                  );
+          }, 
+          icon: Icon(Icons.arrow_back))
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Stack(
+            children: <Widget>[
+              Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Color(0xFF1E2831),
+                  borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50.0),
+                  bottomRight: Radius.circular(50.0),
+                  ),
+                  )
+              ),
+              Padding(
+                padding: EdgeInsets.all(15),
+                child: Center(
+                    child: Text('New York', style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold),)
+                  ),   
+              )
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CarouselSlider(
+                      options: CarouselOptions(
+                        height: 550,
+                        autoPlay: false,
+                        enlargeCenterPage: true,
+                      ),
+                      items: [
+                        'assets/Map.png',
+                      ].map((item) {
+                        return Builder(
+                          builder: (BuildContext context) {
+                            return Container(
+                              width: MediaQuery.of(context).size.width,
+                              margin: EdgeInsets.symmetric(horizontal: 0.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Color(0xFF1E2831),
+                              ),
+                              child: Column(
+                                children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Image.asset(
+                                  item,
+                                  height: 350,
+                                  fit: BoxFit.cover,),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Image(image: AssetImage('assets/Latitude.png')),
+                                        Text('Latitude', style: TextStyle(color: Colors.white, )),
+                                        Text('29', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600))
+                                      ],
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: CircularPercentIndicator(
+                                        radius: 55.0,
+                                        lineWidth: 10.0,
+                                        percent: 0.70,
+                                        center: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text('Population', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),),
+                                            Text('4387547', style: TextStyle(color: Colors.white),)
+                                          ],
+                                        ),
+                                        circularStrokeCap: CircularStrokeCap.butt,
+                                        progressColor: Colors.white,
+                                        backgroundColor: Colors.black,
+                                        
+                                        
+                                      ),
+                                    ),
+                                    Column(
+                                      children: [
+                                        Image(image: AssetImage('assets/Longitude.png')),
+                                        Text('Longitude', style: TextStyle(color: Colors.white, )),
+                                        Text('31', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600))
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Center(
+                                  child: Text('Elevation(m): 10', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(80, 0, 80, 0),
+                                  child: TextButton(
+                                    onPressed: () async {
+                                          var url = Uri.parse("https://en.wikipedia.org/wiki/New_York_City");
+                                          if (await canLaunchUrl(url)) {
+                                            await launchUrl(url);
+                                          } else {
+                                            throw 'Could not launch $url';
+                                          }
+                                        },
+                                    style: TextButton.styleFrom(backgroundColor: Color(0xFF334351)), 
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text('Wikipedia', style: TextStyle(color: Colors.white, fontSize: 18)),
+                                        Icon(Icons.arrow_outward_outlined, color: Colors.white,)
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                ]
+                              ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+          ),
+        ]
+      ),
+    );
+  }
+}
+
