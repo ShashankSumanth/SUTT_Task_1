@@ -1,0 +1,868 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, prefer_const_constructors_in_immutables, use_key_in_widget_constructors
+
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
+
+
+
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  // FirebaseDatabase.instance.setPersistenceEnabled(true);
+  // FirebaseDatabase.instance.reference().keepSynced(true);
+  runApp(MaterialApp(
+    home: HomeScreen(),
+    debugShowCheckedModeBanner: false,
+  ));
+}
+
+
+class SignInScreen extends StatefulWidget {
+  @override
+  _SignInScreenState createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  Future<UserCredential?> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
+      if (googleSignInAccount == null) return null;
+
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+
+      final OAuthCredential googleCredential = GoogleAuthProvider.credential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      );
+
+      return await _auth.signInWithCredential(googleCredential);
+    } catch (e) {
+      print("Error signing in with Google: $e");
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Google Sign-In"),
+      ),
+      body: Column(
+        children: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                UserCredential? userCredential = await _signInWithGoogle();
+                if (userCredential != null) {
+                  print("Successfully signed in with Google: ${userCredential.user?.displayName}");
+                } else {
+                  print("Google sign-in failed.");
+                }
+              },
+              child: Text("Sign In with Google"),
+            ),
+          ),
+        ],
+      ),
+
+    );
+  }
+}
+
+
+
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<dynamic> countries = [];
+  final myController = TextEditingController();
+  // DatabaseReference bookmarkedCoutriesToDisplay = FirebaseDatabase.instance.ref();
+
+  @override
+  Widget build(BuildContext context) {
+    searchCountry(String);
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              onPressed: () {Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SignInScreen()),
+                      );
+              },
+              icon: Icon(Icons.account_circle_outlined, color: Colors.blue, size: 35)),
+            Text('HOME',
+            style: TextStyle(color: Color(0xFF1E2831), fontFamily: 'Poppins', fontWeight: FontWeight.w600),),
+            IconButton(
+              onPressed: () {Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => BookmarksScreen()),
+                      );
+              },
+              icon: Icon(Icons.star_outline_rounded, color: Colors.blue, size: 35))
+          ],
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0.0,
+      ),
+      body: Column(children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children:[Text('Welcome!',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Color(0xFF1E2831)),)],
+          ),
+        SizedBox(height: 10),
+        Expanded(
+              child: ListView(
+                children: [
+                  CarouselSlider(
+                    options: CarouselOptions(
+                      height: 200.0,
+                      autoPlay: true,
+                      autoPlayInterval: Duration(seconds: 5),
+                      enlargeCenterPage: true,
+                    ),
+                    items: [
+                      'assets/Carousel_Image_1.jpg',
+                      'assets/Carousel_Image_2.jpg',
+                      'assets/Carousel_Image_3.jpg',
+                    ].map((item) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width,
+                            margin: EdgeInsets.symmetric(horizontal: 0.0),
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                            ),
+                            child: Image.asset(
+                              item,
+                              fit: BoxFit.cover,
+                              height: 100
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ]
+              ),
+              ),
+            
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+          child: Row(
+            children: [Stack(
+              children: <Widget>[
+                Container(
+                  width: 320,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF02021E),
+                    borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20.0),
+                    bottomRight: Radius.circular(20.0),
+                    ),
+                    )
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(5, 15, 0, 0),
+                  child: Column(
+                    children: <Widget>[
+                      Text('Getting',
+                      style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF557498), fontSize: 18, fontFamily: 'Poppins'), ),
+                      SizedBox(height: 5),
+                      Text('Started',
+                      style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF557498), fontSize: 18, fontFamily: 'Poppins'),),
+                      SizedBox(height: 20),
+                      Text('Countries',
+                      style: TextStyle(fontWeight: FontWeight.w300, color: Colors.white, fontSize: 15, fontFamily: 'Poppins'),)
+                      ],
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 20,
+                  child: Image(image: AssetImage('assets/image 4.jpg'),
+                              height: 130,
+                              
+                    ),
+                  ),
+                ],
+              ),
+            ]
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          child: TextField(
+            decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+            hintText: 'Search Country',
+            suffixIcon: Icon(Icons.search, color: Colors.black,),
+            ),
+            controller: myController,
+            onChanged: searchCountry,
+          ),
+        ),
+        Padding(padding: EdgeInsets.fromLTRB(0, 2, 0, 0)),
+        ListTileButton(title: (countries.isNotEmpty ? countries[0]['name']: 'Afghanistan'), code: (countries.isNotEmpty ? countries[0]['code']: 'AFG')),
+        ListTileButton(title: (countries.length > 1 ? countries[1]['name']: 'Albania'), code: (countries.length > 1 ? countries[1]['code']: 'ALB')),
+        ListTileButton(title: (countries.length > 2 ? countries[2]['name']: 'Algeria'), code: (countries.length > 2 ? countries[2]['code']: 'ALG')),
+        ]
+      )
+    );
+  }
+
+void searchCountry(String) async {
+  // print('Change');
+  final countryTextInput = myController.text;
+  final url = "https://wft-geo-db.p.rapidapi.com/v1/geo/countries?namePrefix=$countryTextInput";
+  final uri = Uri.parse(url);
+  final responce = await http.get(
+    uri,
+    headers: {
+      "X-RapidAPI-Key": "37a8028c8bmshf28fe296eed917bp1fa774jsn426861644cff",
+      "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+    }
+    );
+  final body = responce.body;
+  final json = jsonDecode(body);
+  setState( () {
+    countries = json['data'];
+  });
+  // print('Completed');
+  // print(json);
+  // print(myController.text);
+}
+}
+
+class BookmarkInfo extends ChangeNotifier {
+  var bookmarkedCountryName;
+  BookmarkInfo({required this.bookmarkedCountryName});
+  bool _isBookmarked = false;
+  bool get isBookmarked => _isBookmarked;
+  final _form = GlobalKey<FormState>();
+  void writeData() async { 
+    _form.currentState?.save(); 
+    var url = "https://sutt-final-acdca-default-rtdb.asia-southeast1.firebasedatabase.app/"+"data.json";
+    try { 
+      final response = await http.post( 
+        Uri.parse(url), 
+        body: json.encode({"title": bookmarkedCountryName}), 
+      ); 
+    } catch (error) { 
+      throw error; 
+    } 
+  } 
+  void toggleBookmark() {
+    _isBookmarked = !_isBookmarked;
+    if(_isBookmarked){
+      writeData();
+    }
+    notifyListeners();
+  }
+}
+
+class Bookmark extends StatelessWidget {
+
+  final String bookmarkedCountryName;
+  Bookmark({required this.bookmarkedCountryName});
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<BookmarkInfo>(
+      builder: (context, BookmarkInfo, _) {
+        return Row(
+          children: <Widget>[
+            IconButton(
+              icon: Icon(
+                BookmarkInfo.isBookmarked
+                    ? Icons.star
+                    : Icons.star_border,
+                color: Colors.blue,
+              ),
+              onPressed: () {
+                BookmarkInfo.toggleBookmark();
+              },
+            ),
+            Icon(Icons.arrow_forward_ios, color: Colors.grey),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class YellowBookmark extends StatelessWidget {
+  final String bookmarkedCityName;
+  YellowBookmark({required this.bookmarkedCityName});
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<BookmarkInfo>(
+      builder: (context, BookmarkInfo, _) {
+        return Row(
+          children: <Widget>[
+            IconButton(
+              icon: Icon(
+                BookmarkInfo.isBookmarked
+                    ? Icons.star
+                    : Icons.star_border,
+                color: Colors.amber,
+              ),
+              onPressed: () {
+                BookmarkInfo.toggleBookmark();
+              },
+            ),
+            Icon(Icons.arrow_forward_ios, color: Colors.grey),
+          ],
+        );
+      },
+    );
+  }
+}
+
+
+
+
+// ignore: must_be_immutable
+class Screen2 extends StatefulWidget {
+  String cData;
+  String cName;
+  Screen2({required this.cData, required this.cName});
+
+  @override
+  State<Screen2> createState() => _Screen2State(data: cData, Name: cName);
+}
+
+class _Screen2State extends State<Screen2> {
+  String data;
+  String Name;
+  String get countryName => data;
+  _Screen2State({required this.data, required this.Name});
+  List<dynamic> countryDetails = [];
+  List<dynamic> cities = [];
+  final myController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    getCountryDetails(data);
+    searchCity(data);
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: Text('Country Details', style: TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Poppins', color: Colors.white)),
+        centerTitle: true,
+        backgroundColor: Color(0xFF1E2831),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        
+      ),
+      body: FutureBuilder(
+        future: getCountryDetails(data),
+        builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        else{
+        return Column(
+          children: <Widget>[
+            Container(
+              height: 50,
+              color: Color(0xFF1E2831),
+              child: Center(child: Text(Name, style: TextStyle(fontWeight: FontWeight.w400, fontSize: 25, fontFamily: 'Zen_Antique', color: Colors.white),)),
+            ),
+            Stack(
+              children: <Widget>[
+                Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF1E2831),
+                    borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(50.0),
+                    bottomRight: Radius.circular(50.0),
+                    ),
+                    )
+                ),
+                Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: SvgPicture.network(countryDetails[4], height: 190,)
+                      )
+                      ),   
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Column(
+                    children: [
+                      Text('Code', style: TextStyle(fontSize: 20, color: Colors.grey, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),),
+                      Text(data, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF1E2831)))
+                      ],
+                  ),
+                  Column(
+                    children: [
+                      Text('Capital', style: TextStyle(fontSize: 20, color: Colors.grey, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),),
+                      Text(countryDetails[0], style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF1E2831)))
+                      ],
+                  ),
+                  Column(
+                    children: [
+                      Text('ISD', style: TextStyle(fontSize: 20, color: Colors.grey, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),),
+                      Text(countryDetails[2], style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF1E2831)))
+                      ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+                    padding: const EdgeInsets.fromLTRB(80, 0, 80, 0),
+                    child: TextButton(
+                    onPressed: () async {
+                              var url = Uri.parse("https://en.wikipedia.org/wiki/India");
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url);
+                                } else {
+                                throw 'Could not launch $url';
+                                 }
+                              },
+                              style: TextButton.styleFrom(backgroundColor: Color(0xFF1E2831)), 
+                              child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                  Text('Wikipedia', style: TextStyle(color: Colors.white, fontSize: 18)),
+                                  Icon(Icons.arrow_outward_outlined, color: Colors.white,)
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20 ,0),
+              child: Column(
+                children: [
+                  Text('CITIES', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Poppins')),
+                  SizedBox(height: 5,),
+                  TextField(
+                    decoration: InputDecoration(
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(30),),
+                    hintText: 'Search City',
+                    suffixIcon: Icon(Icons.search,color: Colors.black),
+                    ),
+                    controller: myController,
+                    onChanged: searchCity,
+                  ),
+                ],
+              ),
+            ),
+            ListTileToScreen3(title: cities.isNotEmpty ? (cities[0]['name']): " ", subtitle: cities.isNotEmpty ? (cities[0]['region']): " ", cityId: cities.isNotEmpty ? (cities[0]['wikiDataId']): " "),
+            ListTileToScreen3(title: cities.length>1 ? (cities[1]['name']): " ", subtitle: cities.isNotEmpty ? (cities[1]['region']): " ", cityId: cities.isNotEmpty ? (cities[1]['wikiDataId']): " "),
+            // ListTileToScreen3(title: cities.length>2 ? (cities[2]['name']): " ", subtitle: cities.isNotEmpty ? (cities[2]['region']): " ", cityId: cities.isNotEmpty ? (cities[2]['wikiDataId']): " "),
+            // ListTileToScreen3(title: cities.length>3 ? (cities[3]['name']): " ", subtitle: cities.isNotEmpty ? (cities[3]['region']): " ", cityId: cities.isNotEmpty ? (cities[3]['wikiDataId']): " "),
+          ],
+        );
+        }
+        }
+      )
+    );
+  }
+  Future<int> getCountryDetails(String data) async {
+  print(data);
+  print('starting');
+  final url = "https://wft-geo-db.p.rapidapi.com/v1/geo/countries/$data";
+  final uri = Uri.parse(url);
+  final responce = await http.get(
+    uri,
+    headers: {
+      "X-RapidAPI-Key": "37a8028c8bmshf28fe296eed917bp1fa774jsn426861644cff",
+      "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+    }
+    );
+  final body = responce.body;
+  final json = jsonDecode(body);
+  print(json);
+  setState( () {
+    countryDetails = json['data'].values.toList();
+  });
+  print(countryDetails);
+  return 1;
+}
+
+void searchCity(String) async {
+  // print('Change');
+  // print(data);
+  final cityTextInput = myController.text;
+  final url = "https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds=$data&namePrefix=$cityTextInput";
+  final uri = Uri.parse(url);
+  final responce = await http.get(
+    uri,
+    headers: {
+      "X-RapidAPI-Key": "37a8028c8bmshf28fe296eed917bp1fa774jsn426861644cff",
+      "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+    }
+    );
+  final body = responce.body;
+  final json = jsonDecode(body);
+  setState( () {
+    cities = json['data'];
+  });
+  // print('Completed');
+  // print(cities);
+  // print(myController.text);
+}
+}
+
+class ListTileButton extends StatefulWidget {
+  final String title; 
+  final String code;
+  ListTileButton({required this.title, required this.code});
+
+  @override
+  State<ListTileButton> createState() => _ListTileButtonState();
+}
+
+class _ListTileButtonState extends State<ListTileButton> {
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => BookmarkInfo(bookmarkedCountryName: widget.title,),
+      child: Card(
+        margin: EdgeInsets.fromLTRB(20, 5, 20, 5),
+        child: ListTile(
+          title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(widget.title, style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF031730), fontFamily: 'Poppins')),
+                Bookmark(bookmarkedCountryName: widget.title,),
+              ]),
+          leading: Text(widget.code),
+          onTap: () async {
+            String countryCode = widget.code;
+            String Name = widget.title;
+            Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Screen2(cData: countryCode, cName: Name)),
+                      );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+
+
+class ListTileToScreen3 extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String cityId;
+  ListTileToScreen3({required this.title, required this.subtitle, required this.cityId});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => BookmarkInfo(bookmarkedCountryName: title+"("+subtitle+")"),
+      child: Card(
+        margin: EdgeInsets.fromLTRB(20, 3, 20, 3),
+        child: ListTile(
+          title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(title, style: TextStyle(fontWeight: FontWeight.w500, fontFamily: 'Poppins')),
+                YellowBookmark(bookmarkedCityName: title,),
+              ]),
+          subtitle: Text(subtitle),
+          onTap: () {
+            Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) =>  Screen3(cityCode: cityId)),
+                      );
+                      //cData=cityCode
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ignore: must_be_immutable
+class Screen3 extends StatefulWidget {
+  String cityCode;
+  Screen3({required this.cityCode});
+  @override
+  State<Screen3> createState() => _Screen3State(code: cityCode);
+}
+
+class _Screen3State extends State<Screen3> {
+  String code;
+  List<dynamic> cityDetails = [];
+  _Screen3State({required this.code});
+  @override
+  Widget build(BuildContext context) {
+    getCityDetails(code);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('City Details', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Colors.white),),
+        centerTitle: true,
+        backgroundColor: Color(0xFF1E2831),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
+      body: FutureBuilder(
+        future: getCityDetails(code),
+        builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        else{
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Stack(
+              children: <Widget>[
+                Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF1E2831),
+                    borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(50.0),
+                    bottomRight: Radius.circular(50.0),
+                    ),
+                    )
+                ),
+                Padding(
+                  padding: EdgeInsets.all(5),
+                  child: Center(
+                      child: Text(cityDetails[4], style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w400, fontFamily: 'Zen_Antique'),)
+                    ),   
+                )
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: CarouselSlider(
+                        options: CarouselOptions(
+                          height: 550,
+                          autoPlay: false,
+                          enlargeCenterPage: true,
+                        ),
+                        items: [
+                          'assets/Map.png',
+                        ].map((item) {
+                          return Builder(
+                            builder: (BuildContext context) {
+                              return Container(
+                                width: MediaQuery.of(context).size.width,
+                                margin: EdgeInsets.symmetric(horizontal: 0.0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Color(0xFF1E2831),
+                                ),
+                                child: Column(
+                                  children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Image.asset(
+                                    item,
+                                    height: 350,
+                                    fit: BoxFit.cover,),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Image(image: AssetImage('assets/Latitude.png')),
+                                          Text('Latitude', style: TextStyle(color: Colors.white, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
+                                          Text((cityDetails[10].toInt()).toString(), style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500, fontFamily: 'Poppins'))
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: CircularPercentIndicator(
+                                          radius: 55.0,
+                                          lineWidth: 10.0,
+                                          percent: 0.70,
+                                          center: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(cityDetails[12].toString(), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.white, fontFamily: 'Inter'),),
+                                              Text('Population', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontFamily: 'Poppins'),),
+                                            ],
+                                          ),
+                                          circularStrokeCap: CircularStrokeCap.butt,
+                                          progressColor: Colors.white,
+                                          backgroundColor: Colors.black,
+                                          
+                                          
+                                        ),
+                                      ),
+                                      Column(
+                                        children: [
+                                          Image(image: AssetImage('assets/Longitude.png')),
+                                          Text('Longitude', style: TextStyle(color: Colors.white, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
+                                          Text((cityDetails[11].toInt()).toString(), style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500, fontFamily: 'Poppins'))
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Center(
+                                    child: Text('Elevation(m): ' + cityDetails[0].toString(), style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600, fontFamily: 'Poppins')),
+                                  ),
+                                  // Padding(
+                                  //   padding: const EdgeInsets.fromLTRB(70, 0, 70, 0),
+                                  //   child: TextButton(
+                                  //     onPressed: () async {
+                                  //           var url = Uri.parse("https://en.wikipedia.org/wiki/New_York_City");
+                                  //           if (await canLaunchUrl(url)) {
+                                  //             await launchUrl(url);
+                                  //           } else {
+                                  //             throw 'Could not launch $url';
+                                  //           }
+                                  //         },
+                                  //     style: TextButton.styleFrom(backgroundColor: Color(0xFF334351)), 
+                                  //     child: Row(
+                                  //       mainAxisAlignment: MainAxisAlignment.center,
+                                  //       children: [
+                                  //         Text('WIKIPEDIA', style: TextStyle(color: Colors.white, fontSize: 18, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
+                                  //         Icon(Icons.arrow_outward_outlined, color: Colors.white,)
+                                  //       ],
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                  ]
+                                ),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
+            ),
+          ]
+        );}
+        }
+      ),
+    );
+  }
+
+  Future<int> getCityDetails(String) async {
+  // print('Change');
+  print(code);
+  final url = "https://wft-geo-db.p.rapidapi.com/v1/geo/cities/$code";
+  final uri = Uri.parse(url);
+  final responce = await http.get(
+    uri,
+    headers: {
+      "X-RapidAPI-Key": "37a8028c8bmshf28fe296eed917bp1fa774jsn426861644cff",
+      "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+    }
+    );
+  final body = responce.body;
+  final json = jsonDecode(body);
+  setState( () {
+    cityDetails = json['data'].values.toList();
+  });
+  print('Completed');
+  print(cityDetails);
+  return 1;
+}
+}
+
+class BookmarksScreen extends StatefulWidget {
+  BookmarksScreen({super.key});
+  // bool isLoading = true; 
+  List<String> list = []; 
+  @override
+  State<BookmarksScreen> createState() => _BookmarksScreenState();
+}
+
+class _BookmarksScreenState extends State<BookmarksScreen> {
+  
+  bool isLoading = true; 
+  List<String> list = [];
+    Future<void> readData() async { 
+    var url = "https://sutt-final-acdca-default-rtdb.asia-southeast1.firebasedatabase.app/"+"data.json"; 
+    try { 
+      final response = await http.get(Uri.parse(url)); 
+      final extractedData = json.decode(response.body) as Map<String, dynamic>; 
+      print("reached here");
+      if (extractedData == null) { 
+        print("empty");
+        return; 
+      } 
+      extractedData.forEach((blogId, blogData) { 
+        print("started");
+        list.add(blogData["title"]);
+        print("ended"); 
+      }); 
+      setState(() { 
+        isLoading = false; 
+      }); 
+    } catch (error) { 
+      throw error; 
+    } 
+  }
+  @override
+  Widget build(BuildContext context) {
+    readData();
+    return Scaffold(
+      appBar: AppBar(title: Text('Bookmarked Locations', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Colors.white),),
+        centerTitle: true,
+        backgroundColor: Color(0xFF1E2831),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),),
+      body: isLoading 
+              ? CircularProgressIndicator() 
+              : ListView.builder( 
+                  padding: const EdgeInsets.all(8), 
+                  itemCount: list.length, 
+                  itemBuilder: (BuildContext context, int index) { 
+                    return Container( 
+                        height: 50, 
+                        child: Center( 
+                          child: Text( 
+                            list[index], 
+                            style: TextStyle(color: Colors.blue, fontFamily: 'Poppins'), 
+                          ), 
+                        )); 
+                  }),
+    );
+  }
+}
